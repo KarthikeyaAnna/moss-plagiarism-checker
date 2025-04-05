@@ -1,0 +1,7 @@
+cat > vercel.json << EOF
+{
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
+EOF
