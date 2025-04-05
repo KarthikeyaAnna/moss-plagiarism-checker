@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "5002:5001"
+    environment:
+      - MOSS_PATH=/app/moss.pl
+    volumes:
+      - ./:/app

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@mui/icons-material": "^7.0.1",
+    "react-parallax-tilt": "^1.7.289"
+  },
+  "devDependencies": {
+    "firebase-tools": "^14.1.0"
+  }
+}
