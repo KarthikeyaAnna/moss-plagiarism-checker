@@ -400,6 +400,7 @@ function App() {
 
     try {
       console.log('Sending request to backend...');
+      const API_URL = 'https://srikarthikeya.pythonanywhere.com';
       const response = await axios.post(`${API_BASE_URL}/check-plagiarism`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
