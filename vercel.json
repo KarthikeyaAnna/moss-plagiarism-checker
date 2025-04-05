@@ -1,7 +1,10 @@
 cat > vercel.json << EOF
 {
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app"
 }
 EOF
