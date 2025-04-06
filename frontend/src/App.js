@@ -26,17 +26,13 @@ import {
   TableHead,
   TableRow,
   Switch,
-  // FormGroup, // No longer needed if FormControlLabel is not used standalone
-  // FormControlLabel, // No longer needed if Switch is not inside FormGroup/FormControlLabel
   FormHelperText,
   Divider,
-  IconButton // Keep IconButton for CloseIcon in List
+  IconButton
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
-// Removed Dialog related imports
 import CloseIcon from '@mui/icons-material/Close';
-// Removed Grid import
 
 // --- Icons ---
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -55,70 +51,66 @@ import Fade from '@mui/material/Fade';
 // --- Firebase Function URLs ---
 const FIREBASE_FUNCTIONS = {
   CHECK_PLAGIARISM: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/plagiarism_checker',
-  // FETCH_COMPARISON URL is no longer needed as the component using it is removed
-  // FETCH_COMPARISON: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/comparison_fetcher'
 };
 
 // --- Theme Definition (remains the same) ---
 const getDesignTokens = (mode) => ({
-  palette: {
-    mode,
-    ...(mode === 'dark'
-      ? { /* Dark mode styles */
-        primary: { main: '#90caf9' },
-        secondary: { main: '#f48fb1' },
-        background: { default: '#121212', paper: '#1e1e1e' },
-        text: { primary: '#e0e0e0', secondary: '#b0b0b0' },
-      }
-      : { /* Light mode styles */
-        primary: { main: '#1976d2' },
-        secondary: { main: '#dc004e' },
-        background: { default: '#f7f7f7', paper: '#ffffff' },
-        text: { primary: '#333333', secondary: '#666666' },
-        divider: 'rgba(0, 0, 0, 0.12)',
-      }),
-  },
-  typography: { /* Typography styles */
-    h4: { fontWeight: 500, color: mode === 'dark' ? '#e0e0e0' : '#333333', },
-    body1: { color: mode === 'dark' ? '#e0e0e0' : '#333333', },
-    body2: { color: mode === 'dark' ? '#b0b0b0' : '#666666', }
-  },
-  components: { /* Component overrides */
-    MuiPaper: { styleOverrides: { root: { borderRadius: 12, boxShadow: mode === 'dark' ? '0px 3px 15px rgba(0, 0, 0, 0.5)' : '0px 3px 15px rgba(0, 0, 0, 0.1)', }, }, },
-    MuiButton: { styleOverrides: { root: { borderRadius: 8, textTransform: 'none', padding: '8px 16px', }, contained: { boxShadow: mode === 'dark' ? '0px 2px 4px rgba(0, 0, 0, 0.3)' : '0px 2px 4px rgba(0, 0, 0, 0.1)', }, }, },
-    MuiListItem: { styleOverrides: { root: { color: mode === 'dark' ? '#e0e0e0' : '#333333', }, }, },
-    MuiTableCell: { styleOverrides: { root: { borderBottom: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)', }, head: { fontWeight: 600, backgroundColor: mode === 'dark' ? 'rgba(30, 30, 46, 0.9)' : 'rgba(245, 245, 245, 0.9)', }, }, },
-  },
+    palette: {
+        mode,
+        ...(mode === 'dark'
+            ? { /* Dark mode styles */
+                primary: { main: '#90caf9' },
+                secondary: { main: '#f48fb1' },
+                background: { default: '#121212', paper: '#1e1e1e' },
+                text: { primary: '#e0e0e0', secondary: '#b0b0b0' },
+            }
+            : { /* Light mode styles */
+                primary: { main: '#1976d2' },
+                secondary: { main: '#dc004e' },
+                background: { default: '#f7f7f7', paper: '#ffffff' },
+                text: { primary: '#333333', secondary: '#666666' },
+                divider: 'rgba(0, 0, 0, 0.12)',
+            }),
+    },
+    typography: { /* Typography styles */
+        h4: { fontWeight: 500, color: mode === 'dark' ? '#e0e0e0' : '#333333', },
+        body1: { color: mode === 'dark' ? '#e0e0e0' : '#333333', },
+        body2: { color: mode === 'dark' ? '#b0b0b0' : '#666666', }
+    },
+    components: { /* Component overrides */
+        MuiPaper: { styleOverrides: { root: { borderRadius: 12, boxShadow: mode === 'dark' ? '0px 3px 15px rgba(0, 0, 0, 0.5)' : '0px 3px 15px rgba(0, 0, 0, 0.1)', }, }, },
+        MuiButton: { styleOverrides: { root: { borderRadius: 8, textTransform: 'none', padding: '8px 16px', }, contained: { boxShadow: mode === 'dark' ? '0px 2px 4px rgba(0, 0, 0, 0.3)' : '0px 2px 4px rgba(0, 0, 0, 0.1)', }, }, },
+        MuiListItem: { styleOverrides: { root: { color: mode === 'dark' ? '#e0e0e0' : '#333333', }, }, },
+        MuiTableCell: { styleOverrides: { root: { borderBottom: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)', }, head: { fontWeight: 600, backgroundColor: mode === 'dark' ? 'rgba(30, 30, 46, 0.9)' : 'rgba(245, 245, 245, 0.9)', }, }, },
+    },
 });
 
 
-// --- Helper Function to Extract Filename ---
+// --- Helper Function to Extract Filename (remains the same) ---
 const getBaseFilename = (fullPath) => {
     if (!fullPath || typeof fullPath !== 'string') {
-        return fullPath || 'Unknown File'; // Return original or default if not a valid string
+        return fullPath || 'Unknown File';
     }
-    // Split by '/' and return the last part
     const parts = fullPath.split('/');
     return parts[parts.length - 1];
 };
 
 
-// --- MossResultsDisplay component (MODIFIED for filename extraction) ---
+// --- MossResultsDisplay component (remains the same) ---
 function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
   if (!results || results.length === 0) {
-    // No matches message (remains the same)
     return (
         <Box sx={{ mt: 4, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
                 No matches were found between the submitted files.
             </Typography>
-            {mossUrl && ( // Only show button if base URL exists
+            {mossUrl && (
                 <Button
                     variant="outlined"
                     startIcon={<LaunchIcon />}
                     href={mossUrl}
                     target="_blank"
-                    rel="noopener noreferrer" // Good practice for target="_blank"
+                    rel="noopener noreferrer"
                     sx={{ mt: 2 }}
                 >
                     View on MOSS Website
@@ -128,7 +120,6 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
     );
   }
 
-  // Check if we have more than two files (which means multiple comparisons)
   const hasMultipleComparisons = results.length > 1;
 
   return (
@@ -136,7 +127,6 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
       <Typography variant="h6" gutterBottom>
         Plagiarism Check Results
       </Typography>
-
       <TableContainer component={Paper} sx={{ mb: 3 }}>
         <Table aria-label="plagiarism results table">
           <TableHead>
@@ -145,7 +135,6 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
               <TableCell>File 2</TableCell>
               <TableCell align="center">Overall Match</TableCell>
               <TableCell align="center">Lines Matched</TableCell>
-              {/* Add View Comparison column only if multiple comparisons exist */}
               {hasMultipleComparisons && (
                 <TableCell align="center">View Comparison</TableCell>
               )}
@@ -153,12 +142,9 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
           </TableHead>
           <TableBody>
             {results.map((match, index) => {
-              // Calculate max percentage between the two files
               const file1Percent = parseInt(match.file1.percentage) || 0;
               const file2Percent = parseInt(match.file2.percentage) || 0;
               const maxPercent = Math.max(file1Percent, file2Percent);
-
-              // *** FIX: Extract base filename ***
               const file1BaseName = getBaseFilename(match.file1.name);
               const file2BaseName = getBaseFilename(match.file2.name);
 
@@ -167,7 +153,6 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <InsertDriveFileIcon fontSize="small" color="primary" />
-                      {/* Use extracted filename */}
                       <Typography title={match.file1.name}>{file1BaseName}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                         <PercentIcon fontSize="small" sx={{ fontSize: '0.9rem', mr: 0.5 }} />
@@ -178,7 +163,6 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <InsertDriveFileIcon fontSize="small" color="secondary" />
-                       {/* Use extracted filename */}
                       <Typography title={match.file2.name}>{file2BaseName}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                         <PercentIcon fontSize="small" sx={{ fontSize: '0.9rem', mr: 0.5 }} />
@@ -186,31 +170,15 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
                       </Typography>
                     </Box>
                   </TableCell>
-                  {/* Max % column */}
                   <TableCell align="center">
-                    <Typography
-                      variant="body1"
-                      fontWeight="medium"
-                      color={maxPercent > 50 ? "error.main" : (maxPercent > 30 ? "warning.main" : "inherit")}
-                    >
-                      {maxPercent}%
-                    </Typography>
+                    <Typography variant="body1" fontWeight="medium" color={maxPercent > 50 ? "error.main" : (maxPercent > 30 ? "warning.main" : "inherit")} > {maxPercent}% </Typography>
                   </TableCell>
                   <TableCell align="center">
                     <Typography variant="body1" fontWeight="medium">{match.lines_matched}</Typography>
                   </TableCell>
-                  {/* View Comparison button */}
                   {hasMultipleComparisons && (
                     <TableCell align="center">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => onViewMatch(match.comparison_url)}
-                      >
-                        View Match
-                      </Button>
+                      <Button variant="contained" color="primary" size="small" startIcon={<VisibilityIcon />} onClick={() => onViewMatch(match.comparison_url)} > View Match </Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -219,17 +187,9 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Button for single comparison */}
       {!hasMultipleComparisons && results.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <Button
-            variant="outlined"
-            startIcon={<VisibilityIcon />}
-            onClick={() => onViewMatch(results[0].comparison_url)}
-          >
-            View MOSS Comparison
-          </Button>
+          <Button variant="outlined" startIcon={<VisibilityIcon />} onClick={() => onViewMatch(results[0].comparison_url)} > View MOSS Comparison </Button>
         </Box>
       )}
     </Box>
@@ -237,10 +197,7 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
 }
 
 
-// --- CodeComparisonDialog removed ---
-
-
-// --- App Component (with modifications) ---
+// --- App Component (Privacy Notice Updated) ---
 function App() {
   const [mode, setMode] = useState('dark');
   const [files, setFiles] = useState([]);
@@ -251,11 +208,6 @@ function App() {
   const [mossBaseUrl, setMossBaseUrl] = useState('');
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [mossResults, setMossResults] = useState(null);
-
-  // State for the comparison dialog removed
-  // const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
-  // const [comparisonData, setComparisonData] = useState(null);
-  // const [loadingComparison, setLoadingComparison] = useState(false);
 
   const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
@@ -275,154 +227,140 @@ function App() {
   });
 
   const dropzoneSx = { /* ... (dropzone styles remain the same) ... */
-    border: `2px dashed ${theme.palette.mode === 'dark' ? theme.palette.text.secondary : '#aaaaaa'}`,
-    borderRadius: theme.shape.borderRadius * 1.5,
-    padding: theme.spacing(4),
-    textAlign: 'center',
-    cursor: 'pointer',
-    backgroundColor: isDragActive ? (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)') : (theme.palette.mode === 'dark' ? theme.palette.background.default : '#ffffff'),
-    color: theme.palette.text.secondary,
-    transition: 'all 0.2s ease-in-out',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 150,
-    '&:hover': { borderColor: theme.palette.primary.main, color: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)', }
-  };
+        border: `2px dashed ${theme.palette.mode === 'dark' ? theme.palette.text.secondary : '#aaaaaa'}`,
+        borderRadius: theme.shape.borderRadius * 1.5,
+        padding: theme.spacing(4),
+        textAlign: 'center',
+        cursor: 'pointer',
+        backgroundColor: isDragActive ? (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)') : (theme.palette.mode === 'dark' ? theme.palette.background.default : '#ffffff'),
+        color: theme.palette.text.secondary,
+        transition: 'all 0.2s ease-in-out',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 150,
+        '&:hover': { borderColor: theme.palette.primary.main, color: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)', }
+    };
 
-  // Handler to directly open MOSS URL (remains the same)
-  const handleViewMossUrl = (url) => {
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } else {
-      console.error("Attempted to open MOSS comparison with no URL.");
-      setError("Could not open MOSS report: URL is missing.");
-      setSnackbarMessage(''); // Clear success message if any
-      setOpenSnackbar(true);
-    }
-  };
-
-  // fetchComparisonData function removed
-
-  const handleCheckPlagiarism = async () => {
-    // Input validation (remains the same)
-    if (files.length < 2) {
-      setError('Please upload at least two files to compare.');
-      setSnackbarMessage('');
-      setOpenSnackbar(true);
-      return;
-    }
-
-    setLoading(true);
-    setMossBaseUrl('');
-    setMossResults(null);
-    setError('');
-    setSnackbarMessage('');
-    const formData = new FormData();
-
-    // File validation (empty, size) (remains the same)
-    let stopProcessing = false;
-    for (const file of files) {
-        try {
-            const text = await file.text();
-            if (!text.trim()) {
-                setError(`File '${file.name}' appears to be empty or contains only whitespace.`);
-                stopProcessing = true;
-                break;
-            }
-            const maxSize = 1 * 1024 * 1024; // 1MB
-            if (file.size > maxSize) {
-                setError(`File '${file.name}' (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds the size limit of 1 MB.`);
-                stopProcessing = true;
-                break;
-            }
-            formData.append('files', file, file.name);
-        } catch (readError) {
-             console.error(`Error reading file ${file.name}:`, readError);
-             setError(`Could not read file '${file.name}'. It might be corrupted or in an unsupported format.`);
-             stopProcessing = true;
-             break;
-        }
-    }
-
-    if (stopProcessing) {
-        setSnackbarMessage('');
-        setOpenSnackbar(true);
-        setLoading(false);
-        return; // Exit if an invalid file was found
-    }
-
-    formData.append('language', language);
-    console.log('Language selected:', language);
-
-    try {
-      console.log('Sending request to Firebase function...');
-      // API call (remains the same, including timeout)
-      const response = await axios.post(FIREBASE_FUNCTIONS.CHECK_PLAGIARISM, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 180000 // 3 minutes
-      });
-
-      console.log('Full response:', response);
-
-      // Response handling (remains the same)
-      if (response.data && response.data.url) {
-        setMossBaseUrl(response.data.url);
-        setMossResults(response.data.results || []);
-        if (!response.data.results || response.data.results.length === 0) {
-             setSnackbarMessage('Plagiarism check completed, but no matches found.');
+  const handleViewMossUrl = (url) => { /* ... (handler remains the same) ... */
+        if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
         } else {
-            setSnackbarMessage('Plagiarism check completed successfully!');
+            console.error("Attempted to open MOSS comparison with no URL.");
+            setError("Could not open MOSS report: URL is missing.");
+            setSnackbarMessage('');
+            setOpenSnackbar(true);
         }
+    };
+
+  const handleCheckPlagiarism = async () => { /* ... (handler remains the same) ... */
+        if (files.length < 2) {
+            setError('Please upload at least two files to compare.');
+            setSnackbarMessage('');
+            setOpenSnackbar(true);
+            return;
+        }
+
+        setLoading(true);
+        setMossBaseUrl('');
+        setMossResults(null);
         setError('');
-        setOpenSnackbar(true);
-      } else if (response.data && response.data.error) {
-        if (response.data.status === 'moss_missing') {
-          setError(response.data.message || 'MOSS is not available on the server.');
-        } else {
-           setError(`Error from MOSS: ${response.data.error}`);
+        setSnackbarMessage('');
+        const formData = new FormData();
+
+        let stopProcessing = false;
+        for (const file of files) {
+            try {
+                const text = await file.text();
+                if (!text.trim()) {
+                    setError(`File '${file.name}' appears to be empty or contains only whitespace.`);
+                    stopProcessing = true;
+                    break;
+                }
+                const maxSize = 1 * 1024 * 1024; // 1MB
+                if (file.size > maxSize) {
+                    setError(`File '${file.name}' (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds the size limit of 1 MB.`);
+                    stopProcessing = true;
+                    break;
+                }
+                formData.append('files', file, file.name);
+            } catch (readError) {
+                console.error(`Error reading file ${file.name}:`, readError);
+                setError(`Could not read file '${file.name}'. It might be corrupted or in an unsupported format.`);
+                stopProcessing = true;
+                break;
+            }
         }
-        setSnackbarMessage('');
-        setOpenSnackbar(true);
-      } else {
-        setError('Received an unexpected response from the server.');
-        setSnackbarMessage('');
-        setOpenSnackbar(true);
-      }
-    } catch (error) {
-        // Error handling (remains the same)
-        console.error('Error during plagiarism check:', error);
-        let errorMsg = 'An error occurred during plagiarism check.';
-        if (axios.isCancel(error)) { errorMsg = 'Request cancelled.'; }
-        else if (error.code === 'ECONNABORTED') { errorMsg = 'The request timed out. MOSS might be taking too long. Try again later or with fewer/smaller files.'; }
-        else if (error.response) {
-            console.error('Error response data:', error.response.data);
-            const backendError = error.response.data?.error || error.response.data?.message;
-            errorMsg = backendError ? `Server Error: ${backendError}` : `Server returned status ${error.response.status}`;
-            if (error.response.data?.full_output) { errorMsg += ` Details: ${error.response.data.full_output}`; }
-        } else if (error.request) { errorMsg = 'No response received from the server. Check connection or server status.'; }
-        else { errorMsg = `Request setup error: ${error.message}`; }
-        setError(errorMsg);
-        setSnackbarMessage('');
-        setOpenSnackbar(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // Snackbar close handler (remains the same)
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackbar(false);
-  };
+        if (stopProcessing) {
+            setSnackbarMessage('');
+            setOpenSnackbar(true);
+            setLoading(false);
+            return;
+        }
 
-  // handleCloseComparisonDialog removed
+        formData.append('language', language);
+        console.log('Language selected:', language);
 
-  // handleTestBackendConnection removed
+        try {
+            console.log('Sending request to Firebase function...');
+            const response = await axios.post(FIREBASE_FUNCTIONS.CHECK_PLAGIARISM, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 180000 // 3 minutes
+            });
 
+            console.log('Full response:', response);
+
+            if (response.data && response.data.url) {
+                setMossBaseUrl(response.data.url);
+                setMossResults(response.data.results || []);
+                if (!response.data.results || response.data.results.length === 0) {
+                    setSnackbarMessage('Plagiarism check completed, but no matches found.');
+                } else {
+                    setSnackbarMessage('Plagiarism check completed successfully!');
+                }
+                setError('');
+                setOpenSnackbar(true);
+            } else if (response.data && response.data.error) {
+                if (response.data.status === 'moss_missing') {
+                    setError(response.data.message || 'MOSS is not available on the server.');
+                } else {
+                    setError(`Error from MOSS: ${response.data.error}`);
+                }
+                setSnackbarMessage('');
+                setOpenSnackbar(true);
+            } else {
+                setError('Received an unexpected response from the server.');
+                setSnackbarMessage('');
+                setOpenSnackbar(true);
+            }
+        } catch (error) {
+            console.error('Error during plagiarism check:', error);
+            let errorMsg = 'An error occurred during plagiarism check.';
+            if (axios.isCancel(error)) { errorMsg = 'Request cancelled.'; }
+            else if (error.code === 'ECONNABORTED') { errorMsg = 'The request timed out. MOSS might be taking too long. Try again later or with fewer/smaller files.'; }
+            else if (error.response) {
+                console.error('Error response data:', error.response.data);
+                const backendError = error.response.data?.error || error.response.data?.message;
+                errorMsg = backendError ? `Server Error: ${backendError}` : `Server returned status ${error.response.status}`;
+                if (error.response.data?.full_output) { errorMsg += ` Details: ${error.response.data.full_output}`; }
+            } else if (error.request) { errorMsg = 'No response received from the server. Check connection or server status.'; }
+            else { errorMsg = `Request setup error: ${error.message}`; }
+            setError(errorMsg);
+            setSnackbarMessage('');
+            setOpenSnackbar(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+  const handleCloseSnackbar = (event, reason) => { /* ... (handler remains the same) ... */
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackbar(false);
+    };
 
   return (
     <ThemeProvider theme={theme}>
@@ -430,19 +368,16 @@ function App() {
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={6} sx={{ p: { xs: 2, sm: 4 }, position: 'relative' }}>
           {/* Theme toggle switch (remains the same) */}
-           <Box sx={{ position: 'absolute', top: 12, right: 16, zIndex: 1, display: 'flex', alignItems: 'center', }}>
+          <Box sx={{ position: 'absolute', top: 12, right: 16, zIndex: 1, display: 'flex', alignItems: 'center', }}>
             <Brightness7Icon fontSize="small" sx={{ color: mode === 'light' ? theme.palette.primary.main : theme.palette.text.secondary, mr: 1, }} />
             <Switch checked={mode === 'dark'} onChange={toggleTheme} color="primary" size="small" sx={{ '& .MuiSwitch-switchBase': { transform: 'translateY(-2px)', }, '& .MuiSwitch-thumb': { boxShadow: '0 2px 4px 0 rgba(0,0,0,0.2)', } }} />
             <Brightness4Icon fontSize="small" sx={{ color: mode === 'dark' ? theme.palette.primary.main : theme.palette.text.secondary, ml: 1, }} />
           </Box>
 
-
-          <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3, pr: { xs: 0, sm: 8 } }}> {/* Adjust padding for smaller screens */}
+          {/* Title (remains the same) */}
+          <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3, pr: { xs: 0, sm: 8 } }}>
             Moss Plagiarism Checker
           </Typography>
-
-          {/* Test Backend Connection Button REMOVED */}
-          {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}> ... </Box> */}
 
           {/* Dropzone (remains the same) */}
           <Box sx={{ mb: 3 }}>
@@ -478,7 +413,7 @@ function App() {
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="language-select-label">Language</InputLabel>
             <Select labelId="language-select-label" value={language} label="Language" onChange={(e) => setLanguage(e.target.value)} disabled={loading} >
-                 <MenuItem value="c">C</MenuItem>
+                <MenuItem value="c">C</MenuItem>
                 <MenuItem value="cc">C++</MenuItem>
                 <MenuItem value="java">Java</MenuItem>
                 <MenuItem value="ml">ML</MenuItem>
@@ -513,7 +448,7 @@ function App() {
               </Button>
           </Box>
 
-          {/* Results Display (passes the direct link handler) */}
+          {/* Results Display (remains the same) */}
           {mossResults !== null && (
             <Fade in={true}>
               <Box>
@@ -522,10 +457,10 @@ function App() {
             </Fade>
           )}
 
-          {/* Privacy Notice (remains the same) */}
+          {/* Privacy Notice - UPDATED */}
           <Divider sx={{ mt: 4, mb: 3 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 3, mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, fontSize: '0.9rem' }}>
-            <strong>Privacy Notice:</strong> This MOSS Plagiarism Checker is designed with your privacy in mind... [rest of notice] ...according to their terms of service.
+            <strong>Privacy Notice:</strong> This MOSS Plagiarism Checker is designed with your privacy in mind. We do not store, access, or retain your code submissions beyond the temporary processing required for plagiarism detection. Files are temporarily cached during analysis and automatically deleted afterward. All code comparison is performed through Stanford's MOSS service, which generates publicly accessible result URLs. We recommend avoiding the submission of proprietary or sensitive code. By using this service, you acknowledge that your submissions will be processed through the Stanford MOSS system according to their terms of service.
           </Typography>
         </Paper>
 
@@ -533,8 +468,6 @@ function App() {
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2, fontStyle: 'italic' }} > Developed by Sri Karthikeya </Typography>
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, fontStyle: 'italic' }} > In Association with COM </Typography>
 
-        {/* Comparison Dialog REMOVED */}
-        {/* <CodeComparisonDialog ... /> */}
 
         {/* Snackbar (remains the same) */}
         <Snackbar open={openSnackbar} autoHideDuration={error ? 10000 : 6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} >
@@ -548,3 +481,6 @@ function App() {
 }
 
 export default App;
+Use code with caution.
+JavaScript
+The privacy notice text within the Typography component at the bottom of the Paper element is now exactly as you specified.
