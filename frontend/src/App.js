@@ -33,7 +33,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import CloseIcon from '@mui/icons-material/Close';
-
+//cool
 // --- Icons ---
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
