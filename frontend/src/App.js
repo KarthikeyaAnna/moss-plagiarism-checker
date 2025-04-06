@@ -55,6 +55,12 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 // --- Transitions ---
 import Fade from '@mui/material/Fade';
 
+// --- Firebase Function URLs ---
+const FIREBASE_FUNCTIONS = {
+  CHECK_PLAGIARISM: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/plagiarism_checker',
+  FETCH_COMPARISON: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/comparison_fetcher'
+};
+
 // --- Theme Definition ---
 const getDesignTokens = (mode) => ({
   palette: {
@@ -244,7 +250,7 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
                         color="primary"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        onClick={() => window.open(`${mossUrl}/match${index}`, '_blank')}
+                        onClick={() => onViewMatch(match.comparison_url)}
                       >
                         View Match
                       </Button>
@@ -258,12 +264,12 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
       </TableContainer>
       
       {/* Show the main comparison button for single comparison */}
-      {!hasMultipleComparisons && (
+      {!hasMultipleComparisons && results.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button 
             variant="outlined" 
             startIcon={<VisibilityIcon />}
-            onClick={() => window.open(`${mossUrl}/match0`, '_blank')}
+            onClick={() => onViewMatch(results[0].comparison_url)}
           >
             View MOSS Comparison
           </Button>
@@ -274,7 +280,7 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
 }
 
 // Code comparison component
-const CodeComparisonDialog = ({ open, onClose }) => {
+const CodeComparisonDialog = ({ open, onClose, data, loading }) => {
     if (!open) return null; // Don't render anything if the dialog is not open
 
     return (
@@ -290,9 +296,56 @@ const CodeComparisonDialog = ({ open, onClose }) => {
                 </IconButton>
             </DialogTitle>
             <DialogContent dividers>
-                <Typography variant="body2" color="text.secondary">
-                    The comparison feature has been disabled.
-                </Typography>
+                {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                        <CircularProgress />
+                    </Box>
+                ) : data ? (
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <Typography variant="h6">{data.file1.name}</Typography>
+                            {data.file1.code.length > 0 ? (
+                                <Paper variant="outlined" sx={{ p: 2, maxHeight: '60vh', overflow: 'auto' }}>
+                                    <pre style={{ margin: 0 }}>
+                                        {data.file1.code.join('\n')}
+                                    </pre>
+                                </Paper>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                    No code available for preview.
+                                </Typography>
+                            )}
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Typography variant="h6">{data.file2.name}</Typography>
+                            {data.file2.code.length > 0 ? (
+                                <Paper variant="outlined" sx={{ p: 2, maxHeight: '60vh', overflow: 'auto' }}>
+                                    <pre style={{ margin: 0 }}>
+                                        {data.file2.code.join('\n')}
+                                    </pre>
+                                </Paper>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                    No code available for preview.
+                                </Typography>
+                            )}
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button 
+                                variant="outlined" 
+                                startIcon={<LaunchIcon />} 
+                                href={data.sourceUrl} 
+                                target="_blank"
+                            >
+                                View Complete Comparison on MOSS
+                            </Button>
+                        </Grid>
+                    </Grid>
+                ) : (
+                    <Typography variant="body2" color="text.secondary">
+                        The comparison feature is available, but no data was loaded.
+                    </Typography>
+                )}
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Close</Button>
@@ -300,10 +353,6 @@ const CodeComparisonDialog = ({ open, onClose }) => {
         </Dialog>
     );
 };
-
-// Near the top of your App.js file, add this constant
-// This allows you to easily change the API URL based on environment
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://192.168.41.15:5001';
 
 function App() {
   // Add state for theme mode with 'dark' as default
@@ -368,6 +417,26 @@ function App() {
     }
   };
 
+  const fetchComparisonData = async (url) => {
+    setLoadingComparison(true);
+    try {
+      const response = await axios.post(FIREBASE_FUNCTIONS.FETCH_COMPARISON, 
+        { url: url },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      
+      setComparisonData(response.data);
+      setComparisonDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching comparison:', error);
+      const errorMsg = error.response?.data?.error || 'Failed to fetch comparison data';
+      setError(errorMsg);
+      setOpenSnackbar(true);
+    } finally {
+      setLoadingComparison(false);
+    }
+  };
+
   const handleCheckPlagiarism = async () => {
     if (files.length === 0) {
       setError('Please upload at least one file.');
@@ -399,9 +468,9 @@ function App() {
     console.log('Language selected:', language);
 
     try {
-      console.log('Sending request to backend...');
-      const API_URL = 'https://srikarthikeya.pythonanywhere.com/';
-      const response = await axios.post(`${API_BASE_URL}/check-plagiarism`, formData, {
+      console.log('Sending request to Firebase function...');
+      // Use the Firebase function URL here instead of the local API
+      const response = await axios.post(FIREBASE_FUNCTIONS.CHECK_PLAGIARISM, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       
@@ -413,9 +482,17 @@ function App() {
         setSnackbarMessage('Plagiarism check completed successfully!');
         setError('');
         setOpenSnackbar(true);
+      } else if (response.data && response.data.error) {
+        // Handle the case where MOSS is not available on the server
+        if (response.data.status === 'moss_missing') {
+          setError(response.data.message || 'MOSS is not available on the server.');
+        } else {
+          setError(response.data.error);
+        }
+        setSnackbarMessage('');
+        setOpenSnackbar(true);
       } else {
-        const errorMsg = response.data?.error || 'No results URL received from server.';
-        setError(errorMsg);
+        setError('No results received from server.');
         setSnackbarMessage('');
         setOpenSnackbar(true);
       }
@@ -440,6 +517,11 @@ function App() {
 
   const handleCloseComparisonDialog = () => {
     setComparisonDialogOpen(false);
+  };
+
+  const testBackendConnection = () => {
+    // Test the comparison_fetcher function with the special 'test' parameter
+    fetchComparisonData('test');
   };
 
   return (
@@ -492,11 +574,20 @@ function App() {
           </Box>
 
           <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
-            Moss 
+            Moss Plagiarism Checker
           </Typography>
           
-         
-         
+          {/* Test Backend Connection Button */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Button 
+              variant="outlined" 
+              size="small" 
+              onClick={testBackendConnection}
+            >
+              Test Backend
+            </Button>
+          </Box>
+          
           <Box sx={{ mb: 3 }}>
             <Box {...getRootProps()} sx={dropzoneSx}>
               <input {...getInputProps()} />
@@ -615,7 +706,10 @@ function App() {
                 <MossResultsDisplay 
                   results={mossResults} 
                   mossUrl={mossBaseUrl}
-                  onViewMatch={(url) => window.open(url, '_blank')} 
+                  onViewMatch={(url) => {
+                    setCurrentComparisonUrl(url);
+                    fetchComparisonData(url);
+                  }} 
                 />
               </Box>
             </Fade>
@@ -652,6 +746,8 @@ function App() {
         <CodeComparisonDialog
           open={comparisonDialogOpen}
           onClose={handleCloseComparisonDialog}
+          data={comparisonData}
+          loading={loadingComparison}
         />
 
         <Snackbar
@@ -678,4 +774,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
