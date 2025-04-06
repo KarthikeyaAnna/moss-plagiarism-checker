@@ -481,6 +481,3 @@ function App() {
 }
 
 export default App;
-Use code with caution.
-JavaScript
-The privacy notice text within the Typography component at the bottom of the Paper element is now exactly as you specified.
