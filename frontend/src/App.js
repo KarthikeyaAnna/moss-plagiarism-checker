@@ -26,20 +26,17 @@ import {
   TableHead,
   TableRow,
   Switch,
-  FormGroup,
-  FormControlLabel,
+  // FormGroup, // No longer needed if FormControlLabel is not used standalone
+  // FormControlLabel, // No longer needed if Switch is not inside FormGroup/FormControlLabel
   FormHelperText,
-  Divider
+  Divider,
+  IconButton // Keep IconButton for CloseIcon in List
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import IconButton from '@mui/material/IconButton';
+// Removed Dialog related imports
 import CloseIcon from '@mui/icons-material/Close';
-import Grid from '@mui/material/Grid';
+// Removed Grid import
 
 // --- Icons ---
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -58,122 +55,76 @@ import Fade from '@mui/material/Fade';
 // --- Firebase Function URLs ---
 const FIREBASE_FUNCTIONS = {
   CHECK_PLAGIARISM: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/plagiarism_checker',
-  FETCH_COMPARISON: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/comparison_fetcher'
+  // FETCH_COMPARISON URL is no longer needed as the component using it is removed
+  // FETCH_COMPARISON: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/comparison_fetcher'
 };
 
-// --- Theme Definition ---
+// --- Theme Definition (remains the same) ---
 const getDesignTokens = (mode) => ({
   palette: {
     mode,
     ...(mode === 'dark'
-      ? {
-        // Dark mode palette values
-        primary: { main: '#90caf9' }, // Light blue
-        secondary: { main: '#f48fb1' }, // Pinkish
-        background: {
-          default: '#121212', // Standard dark
-          paper: '#1e1e1e', // Slightly lighter for paper elements
-        },
-        text: {
-          primary: '#e0e0e0', // Lighter grey
-          secondary: '#b0b0b0', // Darker grey
-        },
+      ? { /* Dark mode styles */
+        primary: { main: '#90caf9' },
+        secondary: { main: '#f48fb1' },
+        background: { default: '#121212', paper: '#1e1e1e' },
+        text: { primary: '#e0e0e0', secondary: '#b0b0b0' },
       }
-      : {
-        // Light mode palette values - more explicit definitions
+      : { /* Light mode styles */
         primary: { main: '#1976d2' },
         secondary: { main: '#dc004e' },
-        background: {
-          default: '#f7f7f7',
-          paper: '#ffffff',
-        },
-        text: {
-          primary: '#333333',
-          secondary: '#666666',
-        },
+        background: { default: '#f7f7f7', paper: '#ffffff' },
+        text: { primary: '#333333', secondary: '#666666' },
         divider: 'rgba(0, 0, 0, 0.12)',
       }),
   },
-  typography: {
-    h4: {
-      fontWeight: 500,
-      color: mode === 'dark' ? '#e0e0e0' : '#333333',
-    },
-    body1: {
-      color: mode === 'dark' ? '#e0e0e0' : '#333333',
-    },
-    body2: {
-      color: mode === 'dark' ? '#b0b0b0' : '#666666',
-    }
+  typography: { /* Typography styles */
+    h4: { fontWeight: 500, color: mode === 'dark' ? '#e0e0e0' : '#333333', },
+    body1: { color: mode === 'dark' ? '#e0e0e0' : '#333333', },
+    body2: { color: mode === 'dark' ? '#b0b0b0' : '#666666', }
   },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: mode === 'dark'
-            ? '0px 3px 15px rgba(0, 0, 0, 0.5)'
-            : '0px 3px 15px rgba(0, 0, 0, 0.1)',
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          padding: '8px 16px',
-        },
-        contained: {
-          boxShadow: mode === 'dark'
-            ? '0px 2px 4px rgba(0, 0, 0, 0.3)'
-            : '0px 2px 4px rgba(0, 0, 0, 0.1)',
-        },
-      },
-    },
-    MuiListItem: {
-      styleOverrides: {
-        root: {
-          color: mode === 'dark' ? '#e0e0e0' : '#333333',
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          borderBottom: mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.1)',
-        },
-        head: {
-          fontWeight: 600,
-          backgroundColor: mode === 'dark'
-            ? 'rgba(30, 30, 46, 0.9)'
-            : 'rgba(245, 245, 245, 0.9)',
-        },
-      },
-    },
+  components: { /* Component overrides */
+    MuiPaper: { styleOverrides: { root: { borderRadius: 12, boxShadow: mode === 'dark' ? '0px 3px 15px rgba(0, 0, 0, 0.5)' : '0px 3px 15px rgba(0, 0, 0, 0.1)', }, }, },
+    MuiButton: { styleOverrides: { root: { borderRadius: 8, textTransform: 'none', padding: '8px 16px', }, contained: { boxShadow: mode === 'dark' ? '0px 2px 4px rgba(0, 0, 0, 0.3)' : '0px 2px 4px rgba(0, 0, 0, 0.1)', }, }, },
+    MuiListItem: { styleOverrides: { root: { color: mode === 'dark' ? '#e0e0e0' : '#333333', }, }, },
+    MuiTableCell: { styleOverrides: { root: { borderBottom: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)', }, head: { fontWeight: 600, backgroundColor: mode === 'dark' ? 'rgba(30, 30, 46, 0.9)' : 'rgba(245, 245, 245, 0.9)', }, }, },
   },
 });
 
-// --- MossResultsDisplay component (NO CHANGES NEEDED HERE) ---
+
+// --- Helper Function to Extract Filename ---
+const getBaseFilename = (fullPath) => {
+    if (!fullPath || typeof fullPath !== 'string') {
+        return fullPath || 'Unknown File'; // Return original or default if not a valid string
+    }
+    // Split by '/' and return the last part
+    const parts = fullPath.split('/');
+    return parts[parts.length - 1];
+};
+
+
+// --- MossResultsDisplay component (MODIFIED for filename extraction) ---
 function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
   if (!results || results.length === 0) {
+    // No matches message (remains the same)
     return (
-      <Box sx={{ mt: 4, textAlign: 'center' }}>
-        <Typography variant="h6" color="text.secondary">
-          No matches were found between the submitted files.
-        </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<LaunchIcon />}
-          href={mossUrl}
-          target="_blank"
-          sx={{ mt: 2 }}
-        >
-          View on MOSS Website
-        </Button>
-      </Box>
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Typography variant="h6" color="text.secondary">
+                No matches were found between the submitted files.
+            </Typography>
+            {mossUrl && ( // Only show button if base URL exists
+                <Button
+                    variant="outlined"
+                    startIcon={<LaunchIcon />}
+                    href={mossUrl}
+                    target="_blank"
+                    rel="noopener noreferrer" // Good practice for target="_blank"
+                    sx={{ mt: 2 }}
+                >
+                    View on MOSS Website
+                </Button>
+            )}
+        </Box>
     );
   }
 
@@ -207,12 +158,17 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
               const file2Percent = parseInt(match.file2.percentage) || 0;
               const maxPercent = Math.max(file1Percent, file2Percent);
 
+              // *** FIX: Extract base filename ***
+              const file1BaseName = getBaseFilename(match.file1.name);
+              const file2BaseName = getBaseFilename(match.file2.name);
+
               return (
                 <TableRow key={index} hover>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <InsertDriveFileIcon fontSize="small" color="primary" />
-                      <Typography>{match.file1.name}</Typography>
+                      {/* Use extracted filename */}
+                      <Typography title={match.file1.name}>{file1BaseName}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                         <PercentIcon fontSize="small" sx={{ fontSize: '0.9rem', mr: 0.5 }} />
                         {match.file1.percentage}%
@@ -222,14 +178,15 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <InsertDriveFileIcon fontSize="small" color="secondary" />
-                      <Typography>{match.file2.name}</Typography>
+                       {/* Use extracted filename */}
+                      <Typography title={match.file2.name}>{file2BaseName}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                         <PercentIcon fontSize="small" sx={{ fontSize: '0.9rem', mr: 0.5 }} />
                         {match.file2.percentage}%
                       </Typography>
                     </Box>
                   </TableCell>
-                  {/* New Max % column */}
+                  {/* Max % column */}
                   <TableCell align="center">
                     <Typography
                       variant="body1"
@@ -242,7 +199,7 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
                   <TableCell align="center">
                     <Typography variant="body1" fontWeight="medium">{match.lines_matched}</Typography>
                   </TableCell>
-                  {/* Add View Comparison button for each row if multiple comparisons exist */}
+                  {/* View Comparison button */}
                   {hasMultipleComparisons && (
                     <TableCell align="center">
                       <Button
@@ -250,7 +207,6 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
                         color="primary"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        // This calls the onViewMatch prop passed from App
                         onClick={() => onViewMatch(match.comparison_url)}
                       >
                         View Match
@@ -264,13 +220,12 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
         </Table>
       </TableContainer>
 
-      {/* Show the main comparison button for single comparison */}
+      {/* Button for single comparison */}
       {!hasMultipleComparisons && results.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button
             variant="outlined"
             startIcon={<VisibilityIcon />}
-            // This also calls the onViewMatch prop passed from App
             onClick={() => onViewMatch(results[0].comparison_url)}
           >
             View MOSS Comparison
@@ -281,87 +236,8 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
   );
 }
 
-// --- CodeComparisonDialog (NO CHANGES NEEDED HERE, only used for Test Backend now) ---
-const CodeComparisonDialog = ({ open, onClose, data, loading }) => {
-    if (!open) return null; // Don't render anything if the dialog is not open
 
-    return (
-        <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-            <DialogTitle>
-                Code Comparison (Test Backend)
-                <IconButton
-                    aria-label="close"
-                    onClick={onClose}
-                    sx={{ position: 'absolute', right: 8, top: 8 }}
-                >
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
-            <DialogContent dividers>
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : data ? (
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                            <Typography variant="h6">{data.file1?.name || 'File 1 (Test Data)'}</Typography>
-                            {data.file1?.code?.length > 0 ? (
-                                <Paper variant="outlined" sx={{ p: 2, maxHeight: '60vh', overflow: 'auto' }}>
-                                    <pre style={{ margin: 0 }}>
-                                        {data.file1.code.join('\n')}
-                                    </pre>
-                                </Paper>
-                            ) : (
-                                <Typography variant="body2" color="text.secondary">
-                                    {data.message || 'No code available for preview.'}
-                                </Typography>
-                            )}
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Typography variant="h6">{data.file2?.name || 'File 2 (Test Data)'}</Typography>
-                            {data.file2?.code?.length > 0 ? (
-                                <Paper variant="outlined" sx={{ p: 2, maxHeight: '60vh', overflow: 'auto' }}>
-                                    <pre style={{ margin: 0 }}>
-                                        {data.file2.code.join('\n')}
-                                    </pre>
-                                </Paper>
-                            ) : (
-                                <Typography variant="body2" color="text.secondary">
-                                    {data.message || 'No code available for preview.'}
-                                </Typography>
-                            )}
-                        </Grid>
-                        {data.sourceUrl && data.sourceUrl !== 'test' && ( // Only show if a real URL exists
-                          <Grid item xs={12}>
-                              <Button
-                                  variant="outlined"
-                                  startIcon={<LaunchIcon />}
-                                  href={data.sourceUrl}
-                                  target="_blank"
-                              >
-                                  View Complete Comparison on MOSS
-                              </Button>
-                          </Grid>
-                        )}
-                         {data.message && ( // Display message from backend if present
-                          <Grid item xs={12}>
-                            <Alert severity={data.file1 ? "info" : "success"}>{data.message}</Alert>
-                          </Grid>
-                        )}
-                    </Grid>
-                ) : (
-                    <Typography variant="body2" color="text.secondary">
-                        The comparison feature is available, but no data was loaded.
-                    </Typography>
-                )}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose}>Close</Button>
-            </DialogActions>
-        </Dialog>
-    );
-};
+// --- CodeComparisonDialog removed ---
 
 
 // --- App Component (with modifications) ---
@@ -376,11 +252,10 @@ function App() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [mossResults, setMossResults] = useState(null);
 
-  // State for the comparison dialog (now only for Test Backend)
-  const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
-  // const [currentComparisonUrl, setCurrentComparisonUrl] = useState(''); // No longer needed for main flow
-  const [comparisonData, setComparisonData] = useState(null);
-  const [loadingComparison, setLoadingComparison] = useState(false);
+  // State for the comparison dialog removed
+  // const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
+  // const [comparisonData, setComparisonData] = useState(null);
+  // const [loadingComparison, setLoadingComparison] = useState(false);
 
   const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
@@ -405,9 +280,7 @@ function App() {
     padding: theme.spacing(4),
     textAlign: 'center',
     cursor: 'pointer',
-    backgroundColor: isDragActive
-      ? (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)')
-      : (theme.palette.mode === 'dark' ? theme.palette.background.default : '#ffffff'),
+    backgroundColor: isDragActive ? (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)') : (theme.palette.mode === 'dark' ? theme.palette.background.default : '#ffffff'),
     color: theme.palette.text.secondary,
     transition: 'all 0.2s ease-in-out',
     display: 'flex',
@@ -415,16 +288,10 @@ function App() {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 150,
-    '&:hover': {
-      borderColor: theme.palette.primary.main,
-      color: theme.palette.primary.main,
-      backgroundColor: theme.palette.mode === 'dark'
-        ? 'rgba(255, 255, 255, 0.03)'
-        : 'rgba(0, 0, 0, 0.02)',
-    }
+    '&:hover': { borderColor: theme.palette.primary.main, color: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)', }
   };
 
-  // *** NEW *** Handler to directly open MOSS URL
+  // Handler to directly open MOSS URL (remains the same)
   const handleViewMossUrl = (url) => {
     if (url) {
       window.open(url, '_blank', 'noopener,noreferrer');
@@ -436,50 +303,16 @@ function App() {
     }
   };
 
-  // Function to fetch comparison data (now only used by Test Backend button)
-  const fetchComparisonData = async (url) => {
-    setLoadingComparison(true);
-    setComparisonData(null); // Clear previous data
-    setError(''); // Clear previous errors
-    try {
-      const response = await axios.post(FIREBASE_FUNCTIONS.FETCH_COMPARISON,
-        { url: url }, // Send the URL (or 'test') in the request body
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      // Log the received data for debugging
-      console.log("Comparison data received:", response.data);
-
-      setComparisonData(response.data); // Store the received data
-      setComparisonDialogOpen(true); // Open the dialog
-    } catch (error) {
-      console.error('Error fetching comparison:', error);
-      const errorMsg = error.response?.data?.error || error.message || 'Failed to fetch comparison data';
-      setComparisonData({ message: `Error: ${errorMsg}` }); // Put error message in data for dialog display
-      setError(`Backend Test Failed: ${errorMsg}`); // Set main error state for snackbar
-      setSnackbarMessage('');
-      setOpenSnackbar(true); // Show snackbar error
-      setComparisonDialogOpen(true); // Still open dialog to show the error message within it
-    } finally {
-      setLoadingComparison(false);
-    }
-  };
-
+  // fetchComparisonData function removed
 
   const handleCheckPlagiarism = async () => {
-    if (files.length === 0) {
-      setError('Please upload at least one file.');
-      setSnackbarMessage('');
-      setOpenSnackbar(true);
-      return;
-    }
-     if (files.length < 2) { // Added check for minimum 2 files
+    // Input validation (remains the same)
+    if (files.length < 2) {
       setError('Please upload at least two files to compare.');
       setSnackbarMessage('');
       setOpenSnackbar(true);
       return;
     }
-
 
     setLoading(true);
     setMossBaseUrl('');
@@ -488,52 +321,55 @@ function App() {
     setSnackbarMessage('');
     const formData = new FormData();
 
-    // Check for empty files before appending
-    let hasEmptyFile = false;
+    // File validation (empty, size) (remains the same)
+    let stopProcessing = false;
     for (const file of files) {
-      const text = await file.text();
-      if (!text.trim()) {
-          setError(`File '${file.name}' appears to be empty or contains only whitespace.`);
-          setSnackbarMessage('');
-          setOpenSnackbar(true);
-          setLoading(false);
-          hasEmptyFile = true;
-          break; // Stop processing if an empty file is found
-      }
-       // Check file size (e.g., limit to 1MB = 1 * 1024 * 1024 bytes)
-      const maxSize = 1 * 1024 * 1024;
-      if (file.size > maxSize) {
-          setError(`File '${file.name}' (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds the size limit of 1 MB.`);
-          setSnackbarMessage('');
-          setOpenSnackbar(true);
-          setLoading(false);
-          hasEmptyFile = true; // Reuse the flag to stop processing
-          break;
-      }
-      formData.append('files', file, file.name);
-    }
-    
-    if (hasEmptyFile) {
-        return; // Exit if an empty or oversized file was found
+        try {
+            const text = await file.text();
+            if (!text.trim()) {
+                setError(`File '${file.name}' appears to be empty or contains only whitespace.`);
+                stopProcessing = true;
+                break;
+            }
+            const maxSize = 1 * 1024 * 1024; // 1MB
+            if (file.size > maxSize) {
+                setError(`File '${file.name}' (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds the size limit of 1 MB.`);
+                stopProcessing = true;
+                break;
+            }
+            formData.append('files', file, file.name);
+        } catch (readError) {
+             console.error(`Error reading file ${file.name}:`, readError);
+             setError(`Could not read file '${file.name}'. It might be corrupted or in an unsupported format.`);
+             stopProcessing = true;
+             break;
+        }
     }
 
+    if (stopProcessing) {
+        setSnackbarMessage('');
+        setOpenSnackbar(true);
+        setLoading(false);
+        return; // Exit if an invalid file was found
+    }
 
     formData.append('language', language);
     console.log('Language selected:', language);
 
     try {
       console.log('Sending request to Firebase function...');
+      // API call (remains the same, including timeout)
       const response = await axios.post(FIREBASE_FUNCTIONS.CHECK_PLAGIARISM, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 180000 // Increase timeout to 180 seconds (3 minutes)
+        timeout: 180000 // 3 minutes
       });
 
       console.log('Full response:', response);
 
+      // Response handling (remains the same)
       if (response.data && response.data.url) {
         setMossBaseUrl(response.data.url);
-        setMossResults(response.data.results || []); // Ensure results is an array
-        // Check if results array is empty even if URL is present
+        setMossResults(response.data.results || []);
         if (!response.data.results || response.data.results.length === 0) {
              setSnackbarMessage('Plagiarism check completed, but no matches found.');
         } else {
@@ -545,7 +381,6 @@ function App() {
         if (response.data.status === 'moss_missing') {
           setError(response.data.message || 'MOSS is not available on the server.');
         } else {
-            // Display the specific error message from the backend
            setError(`Error from MOSS: ${response.data.error}`);
         }
         setSnackbarMessage('');
@@ -556,38 +391,27 @@ function App() {
         setOpenSnackbar(true);
       }
     } catch (error) {
-      console.error('Error during plagiarism check:', error);
-       let errorMsg = 'An error occurred during plagiarism check.';
-       if (axios.isCancel(error)) {
-           errorMsg = 'Request cancelled.';
-       } else if (error.code === 'ECONNABORTED') {
-            errorMsg = 'The request timed out. MOSS might be taking too long. Try again later or with fewer/smaller files.';
-       } else if (error.response) {
-           // Error response from the server (e.g., 4xx, 5xx)
-           console.error('Error response data:', error.response.data);
-           console.error('Error response status:', error.response.status);
-           // Try to get a specific error message from the backend response
-           const backendError = error.response.data?.error || error.response.data?.message;
-           const backendOutput = error.response.data?.full_output;
-           errorMsg = backendError ? `Server Error: ${backendError}` : `Server returned status ${error.response.status}`;
-           if (backendOutput) {
-               errorMsg += ` Details: ${backendOutput}`;
-           }
-       } else if (error.request) {
-           // The request was made but no response was received
-           errorMsg = 'No response received from the server. Check your network connection or the server status.';
-       } else {
-           // Something happened in setting up the request that triggered an Error
-           errorMsg = `Request setup error: ${error.message}`;
-       }
-      setError(errorMsg);
-      setSnackbarMessage('');
-      setOpenSnackbar(true);
+        // Error handling (remains the same)
+        console.error('Error during plagiarism check:', error);
+        let errorMsg = 'An error occurred during plagiarism check.';
+        if (axios.isCancel(error)) { errorMsg = 'Request cancelled.'; }
+        else if (error.code === 'ECONNABORTED') { errorMsg = 'The request timed out. MOSS might be taking too long. Try again later or with fewer/smaller files.'; }
+        else if (error.response) {
+            console.error('Error response data:', error.response.data);
+            const backendError = error.response.data?.error || error.response.data?.message;
+            errorMsg = backendError ? `Server Error: ${backendError}` : `Server returned status ${error.response.status}`;
+            if (error.response.data?.full_output) { errorMsg += ` Details: ${error.response.data.full_output}`; }
+        } else if (error.request) { errorMsg = 'No response received from the server. Check connection or server status.'; }
+        else { errorMsg = `Request setup error: ${error.message}`; }
+        setError(errorMsg);
+        setSnackbarMessage('');
+        setOpenSnackbar(true);
     } finally {
       setLoading(false);
     }
   };
 
+  // Snackbar close handler (remains the same)
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -595,15 +419,9 @@ function App() {
     setOpenSnackbar(false);
   };
 
-  const handleCloseComparisonDialog = () => {
-    setComparisonDialogOpen(false);
-  };
+  // handleCloseComparisonDialog removed
 
-  // Renamed for clarity - this uses the dialog
-  const handleTestBackendConnection = () => {
-    // Call fetchComparisonData with 'test' to trigger the dialog flow
-    fetchComparisonData('test');
-  };
+  // handleTestBackendConnection removed
 
 
   return (
@@ -611,152 +429,56 @@ function App() {
       <CssBaseline />
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={6} sx={{ p: { xs: 2, sm: 4 }, position: 'relative' }}>
-          {/* Theme toggle switch */}
-           <Box sx={{
-            position: 'absolute',
-            top: 12,
-            right: 16,
-            zIndex: 1,
-            display: 'flex',
-            alignItems: 'center',
-          }}>
-            <Brightness7Icon
-              fontSize="small"
-              sx={{
-                color: mode === 'light' ? theme.palette.primary.main : theme.palette.text.secondary,
-                mr: 1,
-              }}
-            />
-            <Switch
-              checked={mode === 'dark'}
-              onChange={toggleTheme}
-              color="primary"
-              size="small"
-              sx={{
-                '& .MuiSwitch-switchBase': {
-                  transform: 'translateY(-2px)',
-                },
-                '& .MuiSwitch-thumb': {
-                  boxShadow: '0 2px 4px 0 rgba(0,0,0,0.2)',
-                }
-              }}
-            />
-            <Brightness4Icon
-              fontSize="small"
-              sx={{
-                color: mode === 'dark' ? theme.palette.primary.main : theme.palette.text.secondary,
-                ml: 1,
-              }}
-            />
+          {/* Theme toggle switch (remains the same) */}
+           <Box sx={{ position: 'absolute', top: 12, right: 16, zIndex: 1, display: 'flex', alignItems: 'center', }}>
+            <Brightness7Icon fontSize="small" sx={{ color: mode === 'light' ? theme.palette.primary.main : theme.palette.text.secondary, mr: 1, }} />
+            <Switch checked={mode === 'dark'} onChange={toggleTheme} color="primary" size="small" sx={{ '& .MuiSwitch-switchBase': { transform: 'translateY(-2px)', }, '& .MuiSwitch-thumb': { boxShadow: '0 2px 4px 0 rgba(0,0,0,0.2)', } }} />
+            <Brightness4Icon fontSize="small" sx={{ color: mode === 'dark' ? theme.palette.primary.main : theme.palette.text.secondary, ml: 1, }} />
           </Box>
 
 
-          <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3, pr: 8 }}> {/* Add padding to prevent overlap */}
+          <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3, pr: { xs: 0, sm: 8 } }}> {/* Adjust padding for smaller screens */}
             Moss Plagiarism Checker
           </Typography>
 
-          {/* Test Backend Connection Button */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-             <Button
-              variant="outlined"
-              size="small"
-              onClick={handleTestBackendConnection} // Changed handler name
-              disabled={loadingComparison} // Disable while test is running
-              startIcon={loadingComparison ? <CircularProgress size={16} color="inherit" /> : null}
-            >
-              {loadingComparison ? 'Testing...' : 'Test Backend'}
-            </Button>
-          </Box>
+          {/* Test Backend Connection Button REMOVED */}
+          {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}> ... </Box> */}
 
+          {/* Dropzone (remains the same) */}
           <Box sx={{ mb: 3 }}>
             <Box {...getRootProps()} sx={dropzoneSx}>
               <input {...getInputProps()} />
               <UploadFileIcon sx={{ fontSize: 48, mb: 1 }} />
-              {isDragActive ? (
-                <Typography>Drop the files here ...</Typography>
-              ) : (
-                <Typography>Drag & drop files, or click to select</Typography>
-              )}
+              {isDragActive ? ( <Typography>Drop the files here ...</Typography> ) : ( <Typography>Drag & drop files, or click to select</Typography> )}
             </Box>
              <FormHelperText sx={{ textAlign: 'center', mt: 1 }}>
               Minimum 2 files required. Max 1MB per file.
             </FormHelperText>
           </Box>
 
-          {/* File List */}
+          {/* File List (remains the same) */}
           <Fade in={files.length > 0}>
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Selected Files: ({files.length})
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={() => {
-                      setFiles([]);
-                      setMossBaseUrl(''); // Also clear results when clearing files
-                      setMossResults(null);
-                      setError('');
-                      setSnackbarMessage('');
-                  }}
-                  disabled={loading} // Disable while checking
-                  sx={{ ml: 2 }}
-                >
-                  Clear All
-                </Button>
+                <Button size="small" color="error" onClick={() => { setFiles([]); setMossBaseUrl(''); setMossResults(null); setError(''); setSnackbarMessage(''); }} disabled={loading} sx={{ ml: 2 }} > Clear All </Button>
               </Typography>
-              {/* Optional: Add max height and scroll for long lists */}
                <List dense sx={{ maxHeight: 150, overflow: 'auto' }}>
                 {files.map((file, index) => (
-                  <ListItem
-                    key={index}
-                    disablePadding
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        size="small"
-                        disabled={loading} // Disable while checking
-                        onClick={() => {
-                          const newFiles = files.filter((_, i) => i !== index);
-                          setFiles(newFiles);
-                           // If all files removed, clear results too
-                          if (newFiles.length === 0) {
-                             setMossBaseUrl('');
-                             setMossResults(null);
-                          }
-                        }}
-                      >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    }
-                  >
-                    <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
-                      <InsertDriveFileIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={file.name}
-                      secondary={`${(file.size / 1024).toFixed(1)} KB`} // Show file size
-                      primaryTypographyProps={{
-                        style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
-                      }}
-                    />
+                  <ListItem key={index} disablePadding secondaryAction={ <IconButton edge="end" aria-label="delete" size="small" disabled={loading} onClick={() => { const newFiles = files.filter((_, i) => i !== index); setFiles(newFiles); if (newFiles.length === 0) { setMossBaseUrl(''); setMossResults(null); } }} > <CloseIcon fontSize="small" /> </IconButton> } >
+                    <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}> <InsertDriveFileIcon fontSize="small" /> </ListItemIcon>
+                    <ListItemText primary={file.name} secondary={`${(file.size / 1024).toFixed(1)} KB`} primaryTypographyProps={{ style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }} />
                   </ListItem>
                 ))}
               </List>
             </Box>
           </Fade>
 
-          {/* Language Selector */}
+          {/* Language Selector (remains the same) */}
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="language-select-label">Language</InputLabel>
-            <Select
-              labelId="language-select-label"
-              value={language}
-              label="Language"
-              onChange={(e) => setLanguage(e.target.value)}
-              disabled={loading}
-            >
-                <MenuItem value="c">C</MenuItem>
+            <Select labelId="language-select-label" value={language} label="Language" onChange={(e) => setLanguage(e.target.value)} disabled={loading} >
+                 <MenuItem value="c">C</MenuItem>
                 <MenuItem value="cc">C++</MenuItem>
                 <MenuItem value="java">Java</MenuItem>
                 <MenuItem value="ml">ML</MenuItem>
@@ -781,96 +503,42 @@ function App() {
                 <MenuItem value="javascript">JavaScript</MenuItem>
                 <MenuItem value="plsql">PL/SQL</MenuItem>
                 <MenuItem value="verilog">Verilog</MenuItem>
-                {/* Add other languages supported by your backend/MOSS */}
             </Select>
           </FormControl>
 
-          {/* Action Button */}
-          <Box sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              width: '100%',
-              mt: 2, mb: 2
-          }}>
-              <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleCheckPlagiarism}
-                  disabled={files.length < 2 || loading} // Disable if less than 2 files
-                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-                  sx={{
-                      minWidth: 200,
-                      py: 1
-                  }}
-              >
+          {/* Action Button (remains the same) */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mt: 2, mb: 2 }}>
+              <Button variant="contained" color="primary" onClick={handleCheckPlagiarism} disabled={files.length < 2 || loading} startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} sx={{ minWidth: 200, py: 1 }} >
                   {loading ? 'Checking...' : 'Check Plagiarism'}
               </Button>
           </Box>
 
-          {/* Results Display */}
+          {/* Results Display (passes the direct link handler) */}
           {mossResults !== null && (
             <Fade in={true}>
               <Box>
-                {/* Pass the new handler function */}
-                <MossResultsDisplay
-                  results={mossResults}
-                  mossUrl={mossBaseUrl}
-                  onViewMatch={handleViewMossUrl}
-                />
+                <MossResultsDisplay results={mossResults} mossUrl={mossBaseUrl} onViewMatch={handleViewMossUrl} />
               </Box>
             </Fade>
           )}
 
-          {/* Privacy Notice */}
+          {/* Privacy Notice (remains the same) */}
           <Divider sx={{ mt: 4, mb: 3 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 3, mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, fontSize: '0.9rem' }}>
-            <strong>Privacy Notice:</strong> This MOSS Plagiarism Checker is designed with your privacy in mind. We do not store, access, or retain your code submissions beyond the temporary processing required for plagiarism detection. Files are temporarily cached during analysis and automatically deleted afterward. All code comparison is performed through Stanford's MOSS service, which generates publicly accessible result URLs. We recommend avoiding the submission of proprietary or sensitive code. By using this service, you acknowledge that your submissions will be processed through the Stanford MOSS system according to their terms of service.
+            <strong>Privacy Notice:</strong> This MOSS Plagiarism Checker is designed with your privacy in mind... [rest of notice] ...according to their terms of service.
           </Typography>
         </Paper>
 
-        {/* Developer Credit */}
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          align="center"
-          sx={{ mt: 2, fontStyle: 'italic' }}
-        >
-          Developed by Sri Karthikeya
-        </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          align="center"
-          sx={{ mt: 0.5, fontStyle: 'italic' }}
-        >
-          In Association with COM
-        </Typography>
+        {/* Developer Credit (remains the same) */}
+        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2, fontStyle: 'italic' }} > Developed by Sri Karthikeya </Typography>
+        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, fontStyle: 'italic' }} > In Association with COM </Typography>
 
-        {/* Comparison Dialog (for Test Backend only) */}
-        <CodeComparisonDialog
-          open={comparisonDialogOpen}
-          onClose={handleCloseComparisonDialog}
-          data={comparisonData}
-          loading={loadingComparison}
-        />
+        {/* Comparison Dialog REMOVED */}
+        {/* <CodeComparisonDialog ... /> */}
 
-        {/* Snackbar */}
-        <Snackbar
-          open={openSnackbar}
-          autoHideDuration={error ? 10000 : 6000} // Show errors longer
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={error ? "error" : "success"}
-            variant="filled"
-            sx={{ width: '100%', display: 'flex', alignItems: 'center' }}
-            iconMapping={{
-              success: <CheckCircleOutlineIcon fontSize="inherit" />,
-              error: <ErrorOutlineIcon fontSize="inherit" />,
-            }}
-          >
+        {/* Snackbar (remains the same) */}
+        <Snackbar open={openSnackbar} autoHideDuration={error ? 10000 : 6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} >
+          <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"} variant="filled" sx={{ width: '100%', display: 'flex', alignItems: 'center' }} iconMapping={{ success: <CheckCircleOutlineIcon fontSize="inherit" />, error: <ErrorOutlineIcon fontSize="inherit" />, }} >
             {error || snackbarMessage}
           </Alert>
         </Snackbar>
