@@ -376,7 +376,7 @@ function App() {
 
           {/* Title (remains the same) */}
           <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3, pr: { xs: 0, sm: 8 } }}>
-//MOSS Plagiarism checker
+
             Moss 
           </Typography>
 
@@ -461,7 +461,6 @@ function App() {
           {/* Privacy Notice - UPDATED */}
           <Divider sx={{ mt: 4, mb: 3 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 3, mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, fontSize: '0.9rem' }}>
-            //This MOSS Plagiarism Checker is designed with your privacy in mind. We do not store, access, or retain your code submissions beyond the temporary processing required for plagiarism detection. Files are temporarily cached during analysis and automatically deleted afterward. All code comparison is performed through Stanford's MOSS service, which generates publicly accessible result URLs. We recommend avoiding the submission of proprietary or sensitive code. By using this service, you acknowledge that your submissions will be processed through the Stanford MOSS system according to their terms of service.
             <strong>Privacy Notice:</strong> ..
           </Typography>
         </Paper>
