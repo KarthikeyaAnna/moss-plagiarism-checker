@@ -466,8 +466,8 @@ function App() {
         </Paper>
 
         {/* Developer Credit (remains the same) */}
-        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2, fontStyle: 'italic' }} > Developed by Sri Karthikeya </Typography>
-        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, fontStyle: 'italic' }} > In Association with COM </Typography>
+        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2, fontStyle: 'italic' }} > Developed by COM technologies pvt.ltd </Typography>
+        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, fontStyle: 'italic' }} > MOSS </Typography>
 
 
         {/* Snackbar (remains the same) */}
