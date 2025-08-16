@@ -47,9 +47,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Fade from '@mui/material/Fade';
 
 // ===================================================================
-// UPDATE #1: REPLACE FIREBASE URL WITH SECURE CONFIGURATION
-// This section now reads your secret API details from Vercel's
-// environment variables. This keeps your secrets out of your code.
+// SECURE CONFIGURATION FOR VERCEL
 // ===================================================================
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 const API_SECRET_KEY = process.env.REACT_APP_API_KEY;
@@ -202,17 +200,18 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
 
 // --- App Component ---
 function App() {
-  const [mode, setMode] = a.useState('dark');
-  const [files, setFiles] = a.useState([]);
-  const [language, setLanguage] = a.useState('python');
-  const [loading, setLoading] = a.useState(false);
-  const [error, setError] = a.useState('');
-  const [openSnackbar, setOpenSnackbar] = a.useState(false);
-  const [mossBaseUrl, setMossBaseUrl] = a.useState('');
-  const [snackbarMessage, setSnackbarMessage] = a.useState('');
-  const [mossResults, setMossResults] = a.useState(null);
+  // FIXED: Removed the incorrect 'a.' before useState and useMemo
+  const [mode, setMode] = useState('dark');
+  const [files, setFiles] = useState([]);
+  const [language, setLanguage] = useState('python');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [mossBaseUrl, setMossBaseUrl] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [mossResults, setMossResults] = useState(null);
 
-  const theme = a.useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
@@ -265,7 +264,6 @@ function App() {
             return;
         }
 
-        // Add a check to ensure Vercel environment variables are loaded
         if (!API_BASE_URL || !API_SECRET_KEY) {
             setError("API connection is not configured. Please contact the administrator.");
             setOpenSnackbar(true);
@@ -284,19 +282,14 @@ function App() {
         }
         formData.append('language', language);
 
-        // ===================================================================
-        // UPDATE #2: MODIFY THE API CALL TO INCLUDE THE SECRET KEY
-        // The axios call now sends your secret key in the 'X-API-Key' header,
-        // which the Flask backend will check for.
-        // ===================================================================
         try {
             console.log('Sending request to secure EC2 server...');
             const response = await axios.post(API_ENDPOINTS.CHECK_PLAGIARISM, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    'X-API-Key': API_SECRET_KEY // This authenticates your request
+                    'X-API-Key': API_SECRET_KEY
                 },
-                timeout: 180000 // 3 minutes
+                timeout: 180000
             });
 
             console.log('Full response:', response);
@@ -311,14 +304,12 @@ function App() {
                 }
                 setError('');
             } else {
-                // Handle cases where the backend returns a structured error
                 throw new Error(response.data?.error || 'Received an unexpected response from the server.');
             }
         } catch (error) {
             console.error('Error during plagiarism check:', error);
             let errorMsg = 'An error occurred during plagiarism check.';
             if (error.response) {
-                // This will display the "Unauthorized" error from your Flask API
                 errorMsg = `Server Error: ${error.response.data?.error || `Status ${error.response.status}`}`;
             } else if (error.code === 'ECONNABORTED') {
                 errorMsg = 'The request timed out. The server might be busy. Please try again.';
