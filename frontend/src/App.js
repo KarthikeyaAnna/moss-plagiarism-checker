@@ -33,7 +33,6 @@ import {
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import CloseIcon from '@mui/icons-material/Close';
-//cool
 // --- Icons ---
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
@@ -44,14 +43,21 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import PercentIcon from '@mui/icons-material/Percent';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-
 // --- Transitions ---
 import Fade from '@mui/material/Fade';
 
-// --- Firebase Function URLs ---
-const FIREBASE_FUNCTIONS = {
-  CHECK_PLAGIARISM: 'https://us-central1-moss79-3e1dd.cloudfunctions.net/plagiarism_checker',
+// ===================================================================
+// UPDATE #1: REPLACE FIREBASE URL WITH SECURE CONFIGURATION
+// This section now reads your secret API details from Vercel's
+// environment variables. This keeps your secrets out of your code.
+// ===================================================================
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_SECRET_KEY = process.env.REACT_APP_API_KEY;
+
+const API_ENDPOINTS = {
+  CHECK_PLAGIARISM: `${API_BASE_URL}/check-plagiarism`,
 };
+
 
 // --- Theme Definition (remains the same) ---
 const getDesignTokens = (mode) => ({
@@ -85,7 +91,6 @@ const getDesignTokens = (mode) => ({
     },
 });
 
-
 // --- Helper Function to Extract Filename (remains the same) ---
 const getBaseFilename = (fullPath) => {
     if (!fullPath || typeof fullPath !== 'string') {
@@ -94,7 +99,6 @@ const getBaseFilename = (fullPath) => {
     const parts = fullPath.split('/');
     return parts[parts.length - 1];
 };
-
 
 // --- MossResultsDisplay component (remains the same) ---
 function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
@@ -196,20 +200,19 @@ function MossResultsDisplay({ results, mossUrl, onViewMatch }) {
   );
 }
 
-
-// --- App Component (Privacy Notice Updated) ---
+// --- App Component ---
 function App() {
-  const [mode, setMode] = useState('dark');
-  const [files, setFiles] = useState([]);
-  const [language, setLanguage] = useState('python');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [mossBaseUrl, setMossBaseUrl] = useState('');
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [mossResults, setMossResults] = useState(null);
+  const [mode, setMode] = a.useState('dark');
+  const [files, setFiles] = a.useState([]);
+  const [language, setLanguage] = a.useState('python');
+  const [loading, setLoading] = a.useState(false);
+  const [error, setError] = a.useState('');
+  const [openSnackbar, setOpenSnackbar] = a.useState(false);
+  const [mossBaseUrl, setMossBaseUrl] = a.useState('');
+  const [snackbarMessage, setSnackbarMessage] = a.useState('');
+  const [mossResults, setMossResults] = a.useState(null);
 
-  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+  const theme = a.useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
@@ -226,7 +229,7 @@ function App() {
     multiple: true
   });
 
-  const dropzoneSx = { /* ... (dropzone styles remain the same) ... */
+  const dropzoneSx = {
         border: `2px dashed ${theme.palette.mode === 'dark' ? theme.palette.text.secondary : '#aaaaaa'}`,
         borderRadius: theme.shape.borderRadius * 1.5,
         padding: theme.spacing(4),
@@ -243,7 +246,7 @@ function App() {
         '&:hover': { borderColor: theme.palette.primary.main, color: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)', }
     };
 
-  const handleViewMossUrl = (url) => { /* ... (handler remains the same) ... */
+  const handleViewMossUrl = (url) => {
         if (url) {
             window.open(url, '_blank', 'noopener,noreferrer');
         } else {
@@ -254,10 +257,17 @@ function App() {
         }
     };
 
-  const handleCheckPlagiarism = async () => { /* ... (handler remains the same) ... */
+  const handleCheckPlagiarism = async () => {
         if (files.length < 2) {
             setError('Please upload at least two files to compare.');
             setSnackbarMessage('');
+            setOpenSnackbar(true);
+            return;
+        }
+
+        // Add a check to ensure Vercel environment variables are loaded
+        if (!API_BASE_URL || !API_SECRET_KEY) {
+            setError("API connection is not configured. Please contact the administrator.");
             setOpenSnackbar(true);
             return;
         }
@@ -269,44 +279,23 @@ function App() {
         setSnackbarMessage('');
         const formData = new FormData();
 
-        let stopProcessing = false;
         for (const file of files) {
-            try {
-                const text = await file.text();
-                if (!text.trim()) {
-                    setError(`File '${file.name}' appears to be empty or contains only whitespace.`);
-                    stopProcessing = true;
-                    break;
-                }
-                const maxSize = 1 * 1024 * 1024; // 1MB
-                if (file.size > maxSize) {
-                    setError(`File '${file.name}' (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds the size limit of 1 MB.`);
-                    stopProcessing = true;
-                    break;
-                }
-                formData.append('files', file, file.name);
-            } catch (readError) {
-                console.error(`Error reading file ${file.name}:`, readError);
-                setError(`Could not read file '${file.name}'. It might be corrupted or in an unsupported format.`);
-                stopProcessing = true;
-                break;
-            }
+            formData.append('files', file, file.name);
         }
-
-        if (stopProcessing) {
-            setSnackbarMessage('');
-            setOpenSnackbar(true);
-            setLoading(false);
-            return;
-        }
-
         formData.append('language', language);
-        console.log('Language selected:', language);
 
+        // ===================================================================
+        // UPDATE #2: MODIFY THE API CALL TO INCLUDE THE SECRET KEY
+        // The axios call now sends your secret key in the 'X-API-Key' header,
+        // which the Flask backend will check for.
+        // ===================================================================
         try {
-            console.log('Sending request to Firebase function...');
-            const response = await axios.post(FIREBASE_FUNCTIONS.CHECK_PLAGIARISM, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+            console.log('Sending request to secure EC2 server...');
+            const response = await axios.post(API_ENDPOINTS.CHECK_PLAGIARISM, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-API-Key': API_SECRET_KEY // This authenticates your request
+                },
                 timeout: 180000 // 3 minutes
             });
 
@@ -321,41 +310,31 @@ function App() {
                     setSnackbarMessage('Plagiarism check completed successfully!');
                 }
                 setError('');
-                setOpenSnackbar(true);
-            } else if (response.data && response.data.error) {
-                if (response.data.status === 'moss_missing') {
-                    setError(response.data.message || 'MOSS is not available on the server.');
-                } else {
-                    setError(`Error from MOSS: ${response.data.error}`);
-                }
-                setSnackbarMessage('');
-                setOpenSnackbar(true);
             } else {
-                setError('Received an unexpected response from the server.');
-                setSnackbarMessage('');
-                setOpenSnackbar(true);
+                // Handle cases where the backend returns a structured error
+                throw new Error(response.data?.error || 'Received an unexpected response from the server.');
             }
         } catch (error) {
             console.error('Error during plagiarism check:', error);
             let errorMsg = 'An error occurred during plagiarism check.';
-            if (axios.isCancel(error)) { errorMsg = 'Request cancelled.'; }
-            else if (error.code === 'ECONNABORTED') { errorMsg = 'The request timed out. MOSS might be taking too long. Try again later or with fewer/smaller files.'; }
-            else if (error.response) {
-                console.error('Error response data:', error.response.data);
-                const backendError = error.response.data?.error || error.response.data?.message;
-                errorMsg = backendError ? `Server Error: ${backendError}` : `Server returned status ${error.response.status}`;
-                if (error.response.data?.full_output) { errorMsg += ` Details: ${error.response.data.full_output}`; }
-            } else if (error.request) { errorMsg = 'No response received from the server. Check connection or server status.'; }
-            else { errorMsg = `Request setup error: ${error.message}`; }
+            if (error.response) {
+                // This will display the "Unauthorized" error from your Flask API
+                errorMsg = `Server Error: ${error.response.data?.error || `Status ${error.response.status}`}`;
+            } else if (error.code === 'ECONNABORTED') {
+                errorMsg = 'The request timed out. The server might be busy. Please try again.';
+            } else if (error.request) {
+                errorMsg = 'Could not connect to the server. Please check its status.';
+            } else {
+                errorMsg = `Request setup error: ${error.message}`;
+            }
             setError(errorMsg);
-            setSnackbarMessage('');
-            setOpenSnackbar(true);
         } finally {
             setLoading(false);
+            setOpenSnackbar(true);
         }
     };
 
-  const handleCloseSnackbar = (event, reason) => { /* ... (handler remains the same) ... */
+  const handleCloseSnackbar = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
@@ -367,20 +346,19 @@ function App() {
       <CssBaseline />
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Paper elevation={6} sx={{ p: { xs: 2, sm: 4 }, position: 'relative' }}>
-          {/* Theme toggle switch (remains the same) */}
+          {/* Theme toggle switch */}
           <Box sx={{ position: 'absolute', top: 12, right: 16, zIndex: 1, display: 'flex', alignItems: 'center', }}>
             <Brightness7Icon fontSize="small" sx={{ color: mode === 'light' ? theme.palette.primary.main : theme.palette.text.secondary, mr: 1, }} />
-            <Switch checked={mode === 'dark'} onChange={toggleTheme} color="primary" size="small" sx={{ '& .MuiSwitch-switchBase': { transform: 'translateY(-2px)', }, '& .MuiSwitch-thumb': { boxShadow: '0 2px 4px 0 rgba(0,0,0,0.2)', } }} />
+            <Switch checked={mode === 'dark'} onChange={toggleTheme} color="primary" size="small" />
             <Brightness4Icon fontSize="small" sx={{ color: mode === 'dark' ? theme.palette.primary.main : theme.palette.text.secondary, ml: 1, }} />
           </Box>
 
-          {/* Title (remains the same) */}
+          {/* Title */}
           <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 3, pr: { xs: 0, sm: 8 } }}>
-
-            Moss 
+            Moss Plagiarism Checker
           </Typography>
 
-          {/* Dropzone (remains the same) */}
+          {/* Dropzone */}
           <Box sx={{ mb: 3 }}>
             <Box {...getRootProps()} sx={dropzoneSx}>
               <input {...getInputProps()} />
@@ -392,16 +370,18 @@ function App() {
             </FormHelperText>
           </Box>
 
-          {/* File List (remains the same) */}
+          {/* File List */}
           <Fade in={files.length > 0}>
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Selected Files: ({files.length})
-                <Button size="small" color="error" onClick={() => { setFiles([]); setMossBaseUrl(''); setMossResults(null); setError(''); setSnackbarMessage(''); }} disabled={loading} sx={{ ml: 2 }} > Clear All </Button>
+                <Button size="small" color="error" onClick={() => { setFiles([]); setMossBaseUrl(''); setMossResults(null); setError(''); }} disabled={loading} sx={{ ml: 2 }} >
+                  Clear All
+                </Button>
               </Typography>
                <List dense sx={{ maxHeight: 150, overflow: 'auto' }}>
                 {files.map((file, index) => (
-                  <ListItem key={index} disablePadding secondaryAction={ <IconButton edge="end" aria-label="delete" size="small" disabled={loading} onClick={() => { const newFiles = files.filter((_, i) => i !== index); setFiles(newFiles); if (newFiles.length === 0) { setMossBaseUrl(''); setMossResults(null); } }} > <CloseIcon fontSize="small" /> </IconButton> } >
+                  <ListItem key={index} disablePadding secondaryAction={ <IconButton edge="end" aria-label="delete" size="small" disabled={loading} onClick={() => { const newFiles = files.filter((_, i) => i !== index); setFiles(newFiles); if (newFiles.length < 2) { setMossResults(null); } }} > <CloseIcon fontSize="small" /> </IconButton> } >
                     <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}> <InsertDriveFileIcon fontSize="small" /> </ListItemIcon>
                     <ListItemText primary={file.name} secondary={`${(file.size / 1024).toFixed(1)} KB`} primaryTypographyProps={{ style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }} />
                   </ListItem>
@@ -410,7 +390,7 @@ function App() {
             </Box>
           </Fade>
 
-          {/* Language Selector (remains the same) */}
+          {/* Language Selector */}
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="language-select-label">Language</InputLabel>
             <Select labelId="language-select-label" value={language} label="Language" onChange={(e) => setLanguage(e.target.value)} disabled={loading} >
@@ -442,14 +422,14 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* Action Button (remains the same) */}
+          {/* Action Button */}
           <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mt: 2, mb: 2 }}>
-              <Button variant="contained" color="primary" onClick={handleCheckPlagiarism} disabled={files.length < 2 || loading} startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} sx={{ minWidth: 200, py: 1 }} >
-                  {loading ? 'Checking...' : 'Check Plagiarism'}
+              <Button variant="contained" color="primary" onClick={handleCheckPlagiarism} disabled={files.length < 2 || loading} startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} sx={{ minWidth: 200, py: 1.5 }} >
+                  {loading ? 'Checking...' : 'Check for Plagiarism'}
               </Button>
           </Box>
 
-          {/* Results Display (remains the same) */}
+          {/* Results Display */}
           {mossResults !== null && (
             <Fade in={true}>
               <Box>
@@ -458,21 +438,20 @@ function App() {
             </Fade>
           )}
 
-          {/* Privacy Notice - UPDATED */}
+          {/* Privacy Notice */}
           <Divider sx={{ mt: 4, mb: 3 }} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 3, mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, fontSize: '0.9rem' }}>
-            <strong>Privacy Notice:</strong> This MOSS Plagiarism Checker is designed with your privacy in mind. We do not store, access, or retain your code submissions beyond the temporary processing required for plagiarism detection. Files are temporarily cached during analysis and automatically deleted afterward. All code comparison is performed through Stanford's MOSS service, which generates publicly accessible result URLs. We recommend avoiding the submission of proprietary or sensitive code. By using this service, you acknowledge that your submissions will be processed through the Stanford MOSS system according to their terms of service.
+            <strong>Privacy Notice:</strong> Your files are sent to the Stanford MOSS service for analysis and are not stored on our server. The results link generated by MOSS is public. Do not submit sensitive or proprietary code.
           </Typography>
         </Paper>
 
-        {/* Developer Credit (remains the same) */}
+        {/* Developer Credit */}
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2, fontStyle: 'italic' }} > Developed by COM technologies pvt.ltd </Typography>
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, fontStyle: 'italic' }} > MOSS </Typography>
 
-
-        {/* Snackbar (remains the same) */}
+        {/* Snackbar */}
         <Snackbar open={openSnackbar} autoHideDuration={error ? 10000 : 6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} >
-          <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"} variant="filled" sx={{ width: '100%', display: 'flex', alignItems: 'center' }} iconMapping={{ success: <CheckCircleOutlineIcon fontSize="inherit" />, error: <ErrorOutlineIcon fontSize="inherit" />, }} >
+          <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"} variant="filled" sx={{ width: '100%' }} >
             {error || snackbarMessage}
           </Alert>
         </Snackbar>
